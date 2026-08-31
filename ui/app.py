@@ -30,25 +30,24 @@ from temp_listings import create_listing, find_nearby_listings, claim_meals, del
 
 st.set_page_config(page_title="Union County Food Bank Finder", page_icon="🥫")
 
-# Soft pastel background with a handful of low-opacity food emoji scattered
-# behind the content - subtle "food app" vibe without getting in the way of
-# readability. Sits behind everything (z-index -1, pointer-events: none) so
-# it never blocks clicks or covers text.
+# Soft pastel background with a repeating, low-opacity food emoji pattern
+# baked directly into .stApp's own background (as a second background-image
+# layer under the gradient) rather than a separately positioned element -
+# a floating <div> with position:fixed/z-index got silently hidden behind
+# Streamlit's app container in practice, since backgrounds always paint
+# behind an element's own content with no stacking-context ambiguity.
 st.markdown(
     """
     <style>
-    .stApp { background: linear-gradient(135deg, #fff6e9 0%, #ffe9f0 30%, #eaf6f0 65%, #eaf0ff 100%); }
+    .stApp {
+        background-image:
+            url("data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20width='300'%20height='300'%3E%3Ctext%20x='15'%20y='40'%20font-size='30'%20opacity='0.14'%3E%F0%9F%8D%8E%3C/text%3E%3Ctext%20x='170'%20y='30'%20font-size='34'%20opacity='0.12'%3E%F0%9F%A5%91%3C/text%3E%3Ctext%20x='40'%20y='120'%20font-size='26'%20opacity='0.12'%3E%F0%9F%A5%95%3C/text%3E%3Ctext%20x='220'%20y='110'%20font-size='30'%20opacity='0.14'%3E%F0%9F%8D%8A%3C/text%3E%3Ctext%20x='100'%20y='190'%20font-size='28'%20opacity='0.11'%3E%F0%9F%8D%9E%3C/text%3E%3Ctext%20x='230'%20y='230'%20font-size='30'%20opacity='0.14'%3E%F0%9F%8D%87%3C/text%3E%3Ctext%20x='30'%20y='250'%20font-size='24'%20opacity='0.10'%3E%F0%9F%A5%A6%3C/text%3E%3Ctext%20x='150'%20y='270'%20font-size='24'%20opacity='0.10'%3E%F0%9F%8D%92%3C/text%3E%3C/svg%3E"),
+            linear-gradient(135deg, #fff6e9 0%, #ffe9f0 30%, #eaf6f0 65%, #eaf0ff 100%);
+        background-repeat: repeat, no-repeat;
+        background-size: 300px 300px, cover;
+        background-attachment: fixed, fixed;
+    }
     </style>
-    <div id="food-bg-decor" style="position:fixed; inset:0; z-index:-1; pointer-events:none; overflow:hidden;">
-        <span style="position:absolute; top:4%; left:6%; font-size:44px; opacity:0.12; transform:rotate(-12deg);">🍎</span>
-        <span style="position:absolute; top:8%; right:8%; font-size:52px; opacity:0.10; transform:rotate(15deg);">🥑</span>
-        <span style="position:absolute; top:35%; left:2%; font-size:36px; opacity:0.10; transform:rotate(8deg);">🥕</span>
-        <span style="position:absolute; top:60%; right:4%; font-size:48px; opacity:0.12; transform:rotate(-10deg);">🍊</span>
-        <span style="position:absolute; bottom:6%; left:10%; font-size:40px; opacity:0.10; transform:rotate(20deg);">🍞</span>
-        <span style="position:absolute; bottom:10%; right:14%; font-size:44px; opacity:0.12; transform:rotate(-18deg);">🍇</span>
-        <span style="position:absolute; top:20%; left:45%; font-size:32px; opacity:0.08; transform:rotate(5deg);">🥦</span>
-        <span style="position:absolute; bottom:30%; left:30%; font-size:30px; opacity:0.08; transform:rotate(-6deg);">🍒</span>
-    </div>
     """,
     unsafe_allow_html=True,
 )
@@ -64,8 +63,15 @@ if dark_mode:
     st.markdown(
         """
         <style>
-        .stApp { background: linear-gradient(135deg, #1a1625 0%, #14202b 35%, #10231f 70%, #171225 100%); color: #fafafa; }
-        #food-bg-decor { opacity: 0.5; }
+        .stApp {
+            background-image:
+                url("data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20width='300'%20height='300'%3E%3Ctext%20x='15'%20y='40'%20font-size='30'%20opacity='0.42'%3E%F0%9F%8D%8E%3C/text%3E%3Ctext%20x='170'%20y='30'%20font-size='34'%20opacity='0.36'%3E%F0%9F%A5%91%3C/text%3E%3Ctext%20x='40'%20y='120'%20font-size='26'%20opacity='0.36'%3E%F0%9F%A5%95%3C/text%3E%3Ctext%20x='220'%20y='110'%20font-size='30'%20opacity='0.42'%3E%F0%9F%8D%8A%3C/text%3E%3Ctext%20x='100'%20y='190'%20font-size='28'%20opacity='0.32'%3E%F0%9F%8D%9E%3C/text%3E%3Ctext%20x='230'%20y='230'%20font-size='30'%20opacity='0.42'%3E%F0%9F%8D%87%3C/text%3E%3Ctext%20x='30'%20y='250'%20font-size='24'%20opacity='0.28'%3E%F0%9F%A5%A6%3C/text%3E%3Ctext%20x='150'%20y='270'%20font-size='24'%20opacity='0.28'%3E%F0%9F%8D%92%3C/text%3E%3C/svg%3E"),
+                linear-gradient(135deg, #1a1625 0%, #14202b 35%, #10231f 70%, #171225 100%);
+            background-repeat: repeat, no-repeat;
+            background-size: 300px 300px, cover;
+            background-attachment: fixed, fixed;
+            color: #fafafa;
+        }
         [data-testid="stHeader"] { background-color: rgba(0,0,0,0); }
         h1, h2, h3, h4, h5, h6, p, label, span, li { color: #fafafa !important; }
         [data-testid="stMetricValue"], [data-testid="stMetricLabel"] { color: #fafafa !important; }
