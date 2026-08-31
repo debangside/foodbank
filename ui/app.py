@@ -30,28 +30,6 @@ from temp_listings import create_listing, find_nearby_listings, claim_meals, del
 
 st.set_page_config(page_title="Union County Food Bank Finder", page_icon="🥫")
 
-# Soft pastel background with a repeating, low-opacity food emoji pattern
-# baked directly into .stApp's own background (as a second background-image
-# layer under the gradient) rather than a separately positioned element -
-# a floating <div> with position:fixed/z-index got silently hidden behind
-# Streamlit's app container in practice, since backgrounds always paint
-# behind an element's own content with no stacking-context ambiguity.
-st.markdown(
-    """
-    <style>
-    .stApp {
-        background-image:
-            url("data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20width='300'%20height='300'%3E%3Ctext%20x='15'%20y='40'%20font-size='30'%20opacity='0.07'%3E%F0%9F%8D%8E%3C/text%3E%3Ctext%20x='170'%20y='30'%20font-size='34'%20opacity='0.06'%3E%F0%9F%A5%91%3C/text%3E%3Ctext%20x='40'%20y='120'%20font-size='26'%20opacity='0.06'%3E%F0%9F%A5%95%3C/text%3E%3Ctext%20x='220'%20y='110'%20font-size='30'%20opacity='0.07'%3E%F0%9F%8D%8A%3C/text%3E%3Ctext%20x='100'%20y='190'%20font-size='28'%20opacity='0.055'%3E%F0%9F%8D%9E%3C/text%3E%3Ctext%20x='230'%20y='230'%20font-size='30'%20opacity='0.07'%3E%F0%9F%8D%87%3C/text%3E%3Ctext%20x='30'%20y='250'%20font-size='24'%20opacity='0.05'%3E%F0%9F%A5%A6%3C/text%3E%3Ctext%20x='150'%20y='270'%20font-size='24'%20opacity='0.05'%3E%F0%9F%8D%92%3C/text%3E%3C/svg%3E"),
-            linear-gradient(135deg, #fff6e9 0%, #ffe9f0 30%, #eaf6f0 65%, #eaf0ff 100%);
-        background-repeat: repeat, no-repeat;
-        background-size: 300px 300px, cover;
-        background-attachment: fixed, fixed;
-    }
-    </style>
-    """,
-    unsafe_allow_html=True,
-)
-
 # Dark mode toggle, top left. Streamlit's built-in theme is set server-side
 # (config.toml), so a user-facing toggle has to work by injecting CSS that
 # overrides the default light theme's colors when switched on.
@@ -59,19 +37,33 @@ top_left, _ = st.columns([1, 5])
 with top_left:
     dark_mode = st.toggle("Dark mode", key="dark_mode")
 
+# Soft pastel background with a repeating, low-opacity food emoji pattern
+# baked directly into .stApp's own background (as a second background-image
+# layer under the gradient) rather than a separately positioned element -
+# a floating <div> with position:fixed/z-index got silently hidden behind
+# Streamlit's app container in practice, since backgrounds always paint
+# behind an element's own content with no stacking-context ambiguity.
+#
+# This is a single st.markdown call whose content varies with dark_mode,
+# rather than one call for the base style plus a second, separate call only
+# added when dark mode is on - two calls meant toggling dark mode added or
+# removed an element from the page, and Streamlit's per-element spacing made
+# everything below shift down by that element's height. One call, always
+# present, keeps the layout stable either way.
 if dark_mode:
-    st.markdown(
-        """
-        <style>
-        .stApp {
-            background-image:
-                url("data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20width='300'%20height='300'%3E%3Ctext%20x='15'%20y='40'%20font-size='30'%20opacity='0.21'%3E%F0%9F%8D%8E%3C/text%3E%3Ctext%20x='170'%20y='30'%20font-size='34'%20opacity='0.18'%3E%F0%9F%A5%91%3C/text%3E%3Ctext%20x='40'%20y='120'%20font-size='26'%20opacity='0.18'%3E%F0%9F%A5%95%3C/text%3E%3Ctext%20x='220'%20y='110'%20font-size='30'%20opacity='0.21'%3E%F0%9F%8D%8A%3C/text%3E%3Ctext%20x='100'%20y='190'%20font-size='28'%20opacity='0.16'%3E%F0%9F%8D%9E%3C/text%3E%3Ctext%20x='230'%20y='230'%20font-size='30'%20opacity='0.21'%3E%F0%9F%8D%87%3C/text%3E%3Ctext%20x='30'%20y='250'%20font-size='24'%20opacity='0.14'%3E%F0%9F%A5%A6%3C/text%3E%3Ctext%20x='150'%20y='270'%20font-size='24'%20opacity='0.14'%3E%F0%9F%8D%92%3C/text%3E%3C/svg%3E"),
-                linear-gradient(135deg, #1a1625 0%, #14202b 35%, #10231f 70%, #171225 100%);
-            background-repeat: repeat, no-repeat;
-            background-size: 300px 300px, cover;
-            background-attachment: fixed, fixed;
-            color: #fafafa;
-        }
+    _bg_svg = (
+        "data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20width='300'%20height='300'%3E"
+        "%3Ctext%20x='15'%20y='40'%20font-size='30'%20opacity='0.21'%3E%F0%9F%8D%8E%3C/text%3E"
+        "%3Ctext%20x='170'%20y='30'%20font-size='34'%20opacity='0.18'%3E%F0%9F%A5%91%3C/text%3E"
+        "%3Ctext%20x='40'%20y='120'%20font-size='26'%20opacity='0.18'%3E%F0%9F%A5%95%3C/text%3E"
+        "%3Ctext%20x='220'%20y='110'%20font-size='30'%20opacity='0.21'%3E%F0%9F%8D%8A%3C/text%3E"
+        "%3Ctext%20x='100'%20y='190'%20font-size='28'%20opacity='0.16'%3E%F0%9F%8D%9E%3C/text%3E"
+        "%3Ctext%20x='230'%20y='230'%20font-size='30'%20opacity='0.21'%3E%F0%9F%8D%87%3C/text%3E"
+        "%3Ctext%20x='30'%20y='250'%20font-size='24'%20opacity='0.14'%3E%F0%9F%A5%A6%3C/text%3E"
+        "%3Ctext%20x='150'%20y='270'%20font-size='24'%20opacity='0.14'%3E%F0%9F%8D%92%3C/text%3E%3C/svg%3E"
+    )
+    _bg_gradient = "linear-gradient(135deg, #1a1625 0%, #14202b 35%, #10231f 70%, #171225 100%)"
+    _extra_css = """
         [data-testid="stHeader"] { background-color: rgba(0,0,0,0); }
         h1, h2, h3, h4, h5, h6, p, label, span, li { color: #fafafa !important; }
         [data-testid="stMetricValue"], [data-testid="stMetricLabel"] { color: #fafafa !important; }
@@ -84,10 +76,39 @@ if dark_mode:
         [data-testid="stWidgetLabel"] p { color: #fafafa !important; }
         div[role="radiogroup"] label { color: #fafafa !important; }
         .stAlert { background-color: #262730; }
-        </style>
-        """,
-        unsafe_allow_html=True,
+    """
+    _text_color = "color: #fafafa;"
+else:
+    _bg_svg = (
+        "data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20width='300'%20height='300'%3E"
+        "%3Ctext%20x='15'%20y='40'%20font-size='30'%20opacity='0.07'%3E%F0%9F%8D%8E%3C/text%3E"
+        "%3Ctext%20x='170'%20y='30'%20font-size='34'%20opacity='0.06'%3E%F0%9F%A5%91%3C/text%3E"
+        "%3Ctext%20x='40'%20y='120'%20font-size='26'%20opacity='0.06'%3E%F0%9F%A5%95%3C/text%3E"
+        "%3Ctext%20x='220'%20y='110'%20font-size='30'%20opacity='0.07'%3E%F0%9F%8D%8A%3C/text%3E"
+        "%3Ctext%20x='100'%20y='190'%20font-size='28'%20opacity='0.055'%3E%F0%9F%8D%9E%3C/text%3E"
+        "%3Ctext%20x='230'%20y='230'%20font-size='30'%20opacity='0.07'%3E%F0%9F%8D%87%3C/text%3E"
+        "%3Ctext%20x='30'%20y='250'%20font-size='24'%20opacity='0.05'%3E%F0%9F%A5%A6%3C/text%3E"
+        "%3Ctext%20x='150'%20y='270'%20font-size='24'%20opacity='0.05'%3E%F0%9F%8D%92%3C/text%3E%3C/svg%3E"
     )
+    _bg_gradient = "linear-gradient(135deg, #fff6e9 0%, #ffe9f0 30%, #eaf6f0 65%, #eaf0ff 100%)"
+    _extra_css = ""
+    _text_color = ""
+
+st.markdown(
+    f"""
+    <style>
+    .stApp {{
+        background-image: url("{_bg_svg}"), {_bg_gradient};
+        background-repeat: repeat, no-repeat;
+        background-size: 300px 300px, cover;
+        background-attachment: fixed, fixed;
+        {_text_color}
+    }}
+    {_extra_css}
+    </style>
+    """,
+    unsafe_allow_html=True,
+)
 
 st.title("Union County Food Bank Finder")
 st.caption(
