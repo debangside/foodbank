@@ -14,6 +14,7 @@ Run with:
     streamlit run app.py
 """
 import sys
+import uuid
 from pathlib import Path
 
 import pandas as pd
@@ -27,6 +28,7 @@ from nearest_foodbank import find_nearest_foodbanks  # noqa: E402
 from routing import get_driving_route  # noqa: E402
 from transit import find_transit_option  # noqa: E402
 from temp_listings import create_listing, find_nearby_listings, claim_meals, delete_listing  # noqa: E402
+from analytics import record_visit, get_stats  # noqa: E402
 
 st.set_page_config(page_title="Union County Food Bank Finder", page_icon="🥫")
 
@@ -106,6 +108,42 @@ st.markdown(
     }}
     {_extra_css}
     </style>
+    """,
+    unsafe_allow_html=True,
+)
+
+# --- Visitor counter, bottom left ----------------------------------------
+# "Unique" is tracked via a long-lived browser cookie set on first visit
+# (not just the Streamlit session, which resets on every page reload), so a
+# returning visitor is recognized rather than counted as new each time.
+# "Active now" and "total visits" are approximations explained in
+# logic/analytics.py's docstring - good enough for a personal-project
+# counter, not a precise analytics platform.
+_visitor_id = st.context.cookies.get("fb_visitor_id")
+if not _visitor_id:
+    _visitor_id = str(uuid.uuid4())
+    st.markdown(
+        f"<script>document.cookie='fb_visitor_id={_visitor_id}; max-age=31536000; path=/';</script>",
+        unsafe_allow_html=True,
+    )
+
+if "visit_recorded" not in st.session_state:
+    record_visit(_visitor_id)
+    st.session_state["visit_recorded"] = True
+
+_stats = get_stats()
+_counter_bg = "rgba(38,39,48,0.85)" if dark_mode else "rgba(255,255,255,0.85)"
+_counter_fg = "#fafafa" if dark_mode else "#333333"
+st.markdown(
+    f"""
+    <div style="position:fixed; bottom:12px; left:12px; z-index:9999;
+                background:{_counter_bg}; color:{_counter_fg}; border-radius:10px;
+                padding:8px 12px; font-size:12px; line-height:1.6;
+                box-shadow:0 1px 4px rgba(0,0,0,0.2); pointer-events:none;">
+        🟢 {_stats['active']} active now<br>
+        👤 {_stats['unique']} unique visitors<br>
+        📈 {_stats['total_visits']} total visits
+    </div>
     """,
     unsafe_allow_html=True,
 )
